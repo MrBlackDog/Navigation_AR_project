@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -51,15 +52,19 @@ public class MainActivity extends AppCompatActivity {
     private ViewRenderable exampleLayoutRenderable;
     private ViewRenderable exampleLayoutRenderable2;
 
+    TextView tx1;
+    TextView tx2;
+    TextView tx3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         arSceneView = findViewById(R.id.ar_scene_view);
-
-        TextView tx1 = findViewById(R.id.textView5);
-        TextView tx2 = findViewById(R.id.textView6);
-        TextView tx3 = findViewById(R.id.textView8);
+        WebSocketGolos.getLocationCallBack = this::setTargetLocation;
+        tx1 = findViewById(R.id.textView5);
+        tx2 = findViewById(R.id.textView6);
+        tx3 = findViewById(R.id.textView8);
         Button bt = findViewById(R.id.button2);
 
         // Build a renderable from a 2D View.
@@ -78,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
       CompletableFuture.allOf(
-                exampleLayout)
+                exampleLayout,exampleLayout2)
                 .handle(
                         (notUsed, throwable) -> {
                             // When you build a Renderable, Sceneform loads its resources in the background while
@@ -92,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
                             try {
                                 exampleLayoutRenderable = exampleLayout.get();
+                                exampleLayoutRenderable2 = exampleLayout2.get();
 
                                // andyRenderable = andy.get();
                                 hasFinishedLoading = true;
@@ -103,31 +109,7 @@ public class MainActivity extends AppCompatActivity {
                             return null;
                         });
 
-        CompletableFuture.allOf(
-                exampleLayout2)
-                .handle(
-                        (notUsed, throwable) -> {
-                            // When you build a Renderable, Sceneform loads its resources in the background while
-                            // returning a CompletableFuture. Call handle(), thenAccept(), or check isDone()
-                            // before calling get().
 
-                            if (throwable != null) {
-                                DemoUtils.displayError(this, "Unable to load renderables", throwable);
-                                return null;
-                            }
-
-                            try {
-                                exampleLayoutRenderable2 = exampleLayout2.get();
-
-                                // andyRenderable = andy.get();
-                                hasFinishedLoading = true;
-
-                            } catch (InterruptedException | ExecutionException ex) {
-                                DemoUtils.displayError(this, "Unable to load renderables", ex);
-                            }
-
-                            return null;
-                        });
 
         // Set an update listener on the Scene that will hide the loading message once a Plane is
         // detected.
@@ -137,7 +119,8 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-                    if (locationScene == null) {
+                    if (locationScene == null)
+                    {
                         // If our locationScene object hasn't been setup yet, this is a good time to do it
                         // We know that here, the AR components have been initiated.
                         locationScene = new LocationScene(this, arSceneView);
@@ -145,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
                         // Now lets create our location markers.
                         // First, a layout
                         LocationMarker layoutLocationMarker = new LocationMarker(
-                                37.708107, 55.754296,
+                                55.748565, 38.254617,
                                 getExampleView()
                         );
 
@@ -153,8 +136,7 @@ public class MainActivity extends AppCompatActivity {
                                 37.867772, 55.744583,
                                 getExampleView2()
                         );
-                        locationScene.mLocationMarkers.add(layoutLocationMarker);
-                        locationScene.mLocationMarkers.add(layoutLocationMarker2);
+
 
                      /*   for (LocationMarker lm :locationScene.mLocationMarkers)
                         {
@@ -192,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
                             distanceTextView.setText(anchornode.getDistance() + "M");
                             coordTextView.setText(layoutLocationMarker.latitude + " " + layoutLocationMarker.longitude);
-                            locationScene.mLocationMarkers.get(0).setScaleModifier(0.4f);
+                            locationScene.mLocationMarkers.get(0).setScaleModifier(0.2f);
                         //    locationScene.mLocationMarkers.get(1).setScaleModifier(0.4f);
                             locationScene.mLocationMarkers.get(0).setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
                             //включение и отключение метки,если расстояние меньше заданного. работает.
@@ -236,7 +218,8 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                         });
-
+                        locationScene.mLocationMarkers.add(layoutLocationMarker);
+                        //locationScene.mLocationMarkers.add(layoutLocationMarker2);
                         // Adding the marker
                         // An example "onRender" event, called every frame
                     /*    // Updates the layout with the markers distance
@@ -324,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
                                         new LocationMarker(
                                                 55.756100, 37.703365,
                                                 getAndy()));*/
-                            }
+                    }
 
                             //Frame process
                             Frame frame = arSceneView.getArFrame();
@@ -377,10 +360,15 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                         });
-        bt.setOnClickListener(view -> {
-            locationScene.mLocationMarkers.get(1).latitude = 55.743514;
-            locationScene.mLocationMarkers.get(1).longitude =37.869371;
-        });
+    }
+
+
+    public void setTargetLocation(double latitude, double longitude) {
+        //tx2.setText(latitude + " " + longitude);
+        Log.d("ArTack","Location:" + String.valueOf(latitude)+ " " + String.valueOf(longitude));
+        locationScene.mLocationMarkers.get(0).latitude = latitude;
+        locationScene.mLocationMarkers.get(0).longitude = longitude;
+
     }
 
   /*  private void OnUpdateFrame(FrameTime frameTime)

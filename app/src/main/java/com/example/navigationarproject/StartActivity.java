@@ -1,9 +1,13 @@
 package com.example.navigationarproject;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,178 +15,138 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import okhttp3.WebSocket;
+
 public class StartActivity extends AppCompatActivity {
 
+    private final int REQUEST_CODE = 100;
     SharedPreferences sharedPreferences;
 
-    String SecretCode;
-    String ID;
-
-    EditText editTextID;
-    EditText editTextCode;
+    public enum Mode
+    {
+        Base,Target;
+    }
+    public static Mode mode;
+    public final static String model = android.os.Build.MODEL;
+    public static WebSocket _ws;
+    public static SocketManager sm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         setContentView(R.layout.activity_start);
 
-        editTextID = findViewById(R.id.editIdText);
-        editTextCode = findViewById(R.id.editCodeText);
-
-        Button SingInButton = findViewById(R.id.button);
-
-        if (savedInstanceState != null) {
-            // Restore value of members from saved state
-            editTextID.setText( savedInstanceState.getString("ID"));
-            editTextCode.setText( savedInstanceState.getString("Code"));
+        if ( (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED)) {
+            // You can use the API that requires the permission.
+           // performAction(...);
+        } //else if (shouldShowRequestPermissionRationale(...)) {
+            // In an educational UI, explain to the user why your app requires this
+            // permission for a specific feature to behave as expected. In this UI,
+            // include a "cancel" or "no thanks" button that allows the user to
+            // continue using your app without granting the permission.
+           // showInContextUI(...);}
+        else {
+            // You can directly ask for the permission.
+            requestPermissions(
+                    new String[] { Manifest.permission.CAMERA ,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION },
+                    REQUEST_CODE);
         }
 
-        SingInButton.setOnClickListener(view -> {
-            Intent intent = new Intent(StartActivity.this, MainActivity.class);
-            startActivity(intent);
-
-            Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.RadioGroup);
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            switch (checkedId) {
+                case -1:
+                    Toast.makeText(getApplicationContext(), "Ничего не выбрано",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.radioButtonBase:
+                    Toast.makeText(getApplicationContext(), "Выбран режим базы",
+                            Toast.LENGTH_SHORT).show();
+                    mode = Mode.Base;
+                    break;
+                case R.id.radioButtonRover:
+                    Toast.makeText(getApplicationContext(), "Выбран режим метки",
+                            Toast.LENGTH_SHORT).show();
+                    mode = Mode.Target;
+                    break;
+                default:
+                    break;
+            }
         });
-        SingInButton.setClickable(false);
 
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         fab.setOnClickListener(view -> {
-            Intent intent = new Intent(StartActivity.this, QuestActivity.class);
-            startActivity(intent);
+            Intent intent;
+            switch (mode)
+            {
+                case Base:
+                     intent = new Intent(StartActivity.this, MainActivity.class);
+                     intent.putExtra("Mode",mode);
+                     Connect();
+                     _ws.send("Phone:" + model + ":" + "StandAlone" +":" + mode);
+                     startActivity(intent);
+                     break;
+                case Target:
+                     intent = new Intent(StartActivity.this, QuestActivity.class);
+                     intent.putExtra("Mode",mode);
+                     Connect();
+                     _ws.send("Phone:" + model + ":" + "StandAlone" +":" + mode);
+                     startActivity(intent);
+                     break;
+            }
+
             Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         });
 
-        editTextID.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                // TODO Auto-generated method stub
-                ID = editTextID.getText().toString();
-
-                if ( editTextID.getText().toString().equals(""))
-                {
-                    ID = "";
-                  //  SingInButton.setText("XD");
-                    SingInButton.setClickable(false);
-                }
-                else if(!editTextCode.getText().toString().equals(""))
-                {
-
-                   // SingInButton.setText("XD2");
-                    SingInButton.setClickable(true);
-                }
-            }
-        });
-
-        editTextCode.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                // TODO Auto-generated method stub
-                SecretCode = editTextCode.getText().toString();
-                if (editTextCode.getText().toString().equals(""))
-                {
-                    SecretCode = "";
-                    //  SingInButton.setText("XD");
-                    SingInButton.setClickable(false);
-                }
-                else if(!editTextID.getText().toString().equals(""))
-                {
-                    // SingInButton.setText("XD2");
-                    SingInButton.setClickable(true);
-                }
-            }
-
-        });
-
-       // if(sharedPreferences.contains("ID") && sharedPreferences.contains("Code"))
-      //  {
-           // loadText();
-       // }
-
     }
 
-    /**
-     * временно не нужно
-     */
-    void saveText() {
-        sharedPreferences = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("ID", editTextID.getText().toString());
-        editor.putString("Code", editTextCode.getText().toString());
-        editor.apply();
-        Toast.makeText(this, "Text saved", Toast.LENGTH_SHORT).show();
-    }
-    /**
-     * временно не нужно
-     */
-    void loadText() {
-        sharedPreferences = getPreferences(MODE_PRIVATE);
-        if(sharedPreferences.contains("ID") && sharedPreferences.contains("Code"))
-        {
-            ID = sharedPreferences.getString("ID", "NET");
-            SecretCode = sharedPreferences.getString("Code", "NEMA");
-            editTextID.setText(ID);
-            editTextCode.setText(SecretCode);
-            Toast.makeText(this, "Text loaded", Toast.LENGTH_SHORT).show();
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case REQUEST_CODE:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission is granted. Continue the action or workflow
+                    // in your app.
+                }  else {
+                    // Explain to the user that the feature is unavailable because
+                    // the features requires a permission that the user has denied.
+                    // At the same time, respect the user's decision. Don't link to
+                    // system settings in an effort to convince the user to change
+                    // their decision.
+                }
+                return;
         }
-    }
-    /**
-     * временно не нужно
-     */
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        SecretCode = savedInstanceState.getString("Code");
-        ID = savedInstanceState.getString("ID");
-
-        Log.d(" Id restored, ID= ",ID);
-        Log.d("Code restored, Code= ",SecretCode);
-        editTextID.setText(savedInstanceState.getString("ID"));
-        editTextCode.setText(savedInstanceState.getString("Code"));
-        Log.e("Id= ",editTextID.getText().toString());
-        Log.e("Code= ",editTextCode.getText().toString());
+        // Other 'case' lines to check for other
+        // permissions this app might request.
     }
 
-    //сохраняем тут свои данные,если приложение не было закрыто полностью,а
-    //только свернуто
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString("Code", SecretCode);
-        outState.putString("ID", ID);
-        Log.d("Id saved, ID= ",ID);
-        Log.d("Code saved, Code= ",SecretCode);
-        super.onSaveInstanceState(outState);
+    public void Connect(){
+        sm = new SocketManager();
+        _ws = sm.Connect();
     }
+
+
 
     /**
      * lifecycle handler

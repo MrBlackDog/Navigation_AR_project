@@ -4,5 +4,9 @@
     <string name="Id">Id</string>
     <string name="Secret_Code">Secret Code</string>
     <string name="title_activity_main2">Main2Activity</string>
+    <string name="Choose">Выберите режим</string>
+    <string name="ModeBase">База</string>
+    <string name="ModeTarget">Метка</string>
+
 
 </resources>

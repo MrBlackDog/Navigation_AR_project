@@ -1,5 +1,10 @@
 package com.example.navigationarproject;
 
+import android.location.Location;
+import android.telephony.mbms.DownloadRequest;
+import android.util.Log;
+import android.widget.Toast;
+
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
@@ -16,14 +21,27 @@ public class WebSocketGolos extends WebSocketListener {
         int Blue = Integer.parseInt(Message.split(",")[2]);
         return new Color(Red/255f,Green/255f,Blue/255f,1);
     }*/
+    public static MyCallBack getLocationCallBack;
+    
+    public interface  MyCallBack{
+        void callBackCall(double latitude, double longitude);
+    }
 
     WebSocketGolos()
     {
     }
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
+        Log.d("ArTack","Connection Opened");
 
     }
+
+    @Override
+    public void onClosed(WebSocket webSocket, int code, String reason) {
+        super.onClosed(webSocket, code, reason);
+
+    }
+
     @Override
     public void onMessage(WebSocket webSocket, String text)
     {
@@ -33,7 +51,10 @@ public class WebSocketGolos extends WebSocketListener {
         String[] Message = {};
         if (Mass.length > 1) {
             Message = Mass[1].split(" ");
+            Log.d("ArTack",Mass[1]);
         }
+        //
+        getLocationCallBack.callBackCall(Double.parseDouble(Message[0]),Double.parseDouble(Message[1]));
        //  loggerFragment.SetTextMessage("xd");
        // String Guid;
        // Color color;

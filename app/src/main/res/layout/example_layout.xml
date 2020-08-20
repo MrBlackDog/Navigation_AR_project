@@ -5,33 +5,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:alpha="0.93"
-    android:background="#a70a04"
+    android:background="#80D58282"
     android:orientation="vertical"
     android:padding="30dp">
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Таня"
-        android:textColor="#fff" />
-
-    <TextView
         android:id="@+id/textView9"
-        android:layout_width="match_parent"
+        android:layout_width="124dp"
         android:layout_height="wrap_content"
         android:text="TextView" />
 
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="match_parent"
+        android:layout_width="124dp"
         android:layout_height="wrap_content"
         android:textColor="#fff"
         android:textSize="24sp" />
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="match_parent"
-        android:layout_height="129dp"
-        app:srcCompat="@drawable/test_logo_jpg" />
+        android:layout_width="124dp"
+        android:layout_height="124dp"
+        app:srcCompat="@drawable/ic_launcher_foreground" />
 </LinearLayout>
